@@ -1,0 +1,147 @@
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+  integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<nav class="navbar navbar-expand-md navbar-dark navbar-custom p-0">
+  <div class="container-fluid">
+    <ul class="navbar-nav mr-auto ">
+      <li class="nav-item ">
+        <a class="nav-link navbar-brand underlineHoverNav" routerLink="/movies"> HEROLO Cinema</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav float-right">
+      <li>
+        <a class="nav-link navbar-brand">
+          <div class="btns">
+            <i class="far fa-plus-square buttonNew posNew addB" (click)=creatNewMovie(content)></i>
+          </div>
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<ng-template #content let-modal>
+  <div class="modal-header grad" style="background-size: cover;box-shadow: 0 0 100px 20px rgba(129, 127, 127, 0.863)">
+  </div>
+  <div class="modal-body"
+    style="background-color: rgb(255, 255, 255);box-shadow: 0 0 100px 20px rgba(129, 127, 127, 0.863);">
+    <form #f="ngForm" [formGroup]="newMForm">
+      <div class="form-group">
+        <label><strong>Film Name</strong></label>
+        <input type="text" class="form-control" formControlName="filmName" #filmName
+          (input)="newMovieDetails['title'] = $event.target.value" />
+      </div>
+      <div
+        *ngIf="newMForm.controls['filmName'].invalid && (newMForm.controls['filmName'].dirty || newMForm.controls['filmName'].touched)||isExistName"
+        class="alert alert-danger">
+        <div *ngIf="isExistName||newMForm.controls['filmName'].errors.required">
+          Uniqe film name is required.
+        </div>
+        <div *ngIf="newMForm.controls['filmName'].errors.pattern">
+            Please input alphabet characters only.
+          </div>
+      </div>
+      <div class="form-group">
+        <label><strong>Release Year </strong></label>
+        <input type="number" class="form-control" formControlName="year" #year
+          (input)="newMovieDetails['year'] = $event.target.value" />
+      </div>
+      <div
+        *ngIf="(newMovieDetails['year'] < 1000 || newMovieDetails['year'] >2020) ||
+              newMForm.controls['year'].invalid && (newMForm.controls['year'].dirty || newMForm.controls['year'].touched)"
+        class="alert alert-danger">
+        Release dates is required [1000-2020]
+      </div>
+      <div class="form-group">
+        <label><strong>Film RunTime</strong></label>
+        <input type="number" class="form-control" formControlName="runTime" #runTime
+          (input)="newMovieDetails['runTime'] = $event.target.value" />
+      </div>
+      <div
+        *ngIf="(newMovieDetails['runTime']<1 || newMovieDetails['runTime']>999) && newMForm.controls['runTime'].touched"
+        class="alert alert-danger">
+        Film RunTime name is required [1-999].
+      </div>
+      <div class="form-group">
+        <label><strong>Film Director</strong></label>
+        <input type="text" class="form-control" formControlName="director" #director
+          (input)="newMovieDetails['director'] = $event.target.value" />
+      </div>
+      <div *ngIf="newMForm.controls['director'].touched && !newMovieDetails['director']" class="alert alert-danger">
+        <div>
+          Director name is required.
+        </div>
+      </div>
+    </form>
+    <div>
+      <label><strong>GENRES : </strong></label>
+      <ng-multiselect-dropdown [data]="dropdownList" [(ngModel)]="selectedItems" [settings]="dropdownSettings"
+        (onSelect)="onItemSelect($event)" (onSelectAll)="onSelectAll($event)" (onDeSelectAll)="onDeSelectAll($event)"
+        (onDeSelect)="onItemDeSelect($event)">
+      </ng-multiselect-dropdown>
+      <div *ngIf="newMovieDetails['genres'].length < 1" class="alert alert-danger">
+        Pick at least on genre.
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer"
+    style="background-color: rgb(184, 190, 188);box-shadow: 0 0 100px 20px rgba(129, 127, 127, 0.863);">
+    <button type="submit" class="btn btn-primary" *ngIf="validate(newMovieDetails['title'])"
+      (click)="save(); modal.dismiss('Save click')">Save</button>
+    <button type="button" class="btn btn-light" (click)="cancel() ;modal.dismiss('Cancel click')">Cancel</button>
+  </div>
+</ng-template>
+
+<div class="flex-container">
+  <div class="movies_list">
+    <div *ngFor="let movie of moviesDetailsAll" class="movie_card spot" (click)="open(movie.id);">
+      <div class="info_section">
+        <p>
+          <span class="popup" data-popuptext="Click for options"></span>
+        </p>
+        <div class="card_header">
+          <img class="locandina" *ngIf="movie.poster_path" src="https://image.tmdb.org/t/p/w185/{{movie.poster_path}}"
+            alt="poster movie" />
+          <img class="locandina" *ngIf="!movie.poster_path" src="../../assets/img/poster.jpg"
+            alt="No poster available">
+          <div class="full">
+            <h1>{{ movie.title }}</h1>
+            <h4>{{movie.release_date}}, {{movie.directorName}}</h4>
+          </div>
+        </div>
+        <div class="card_footer">
+          <div class="starRate full">
+            <span class="fa fa-star star" *ngFor='let i of counter(movie.vote_average)'> </span>
+            <span class="fa fa-star" *ngFor='let i of restCounter(movie.vote_average)'> </span>
+            <span class="rate" *ngIf='movie.vote_average>7'
+              [ngStyle]="{'background-color': 'rgba(35, 196, 70, 0.534)'}">
+              {{ movie.vote_average }}</span>
+            <span class="rate" *ngIf='movie.vote_average<7'
+              [ngStyle]="{'background-color': 'rgba(235, 136, 23, 0.534)'}">
+              {{ movie.vote_average }}</span>
+
+          </div>
+          <div class="full">
+            <span class="minutes">{{ movie.runtime }} Min</span>
+          </div>
+          <p class="type full">
+            <span *ngFor='let genresList of movie.genres; let lst = last;'> {{genresList.name}} <span
+                *ngIf='lst == false'> | </span> </span></p>
+
+        </div>
+      </div>
+      <div class="blur_back " *ngIf='movie.backdrop_path'
+        [ngStyle]="{'background-image': 'url('+'https://image.tmdb.org/t/p/original'+movie.backdrop_path+')'}">
+      </div>
+      <div class="blur_back " *ngIf='!movie.backdrop_path' src="../../assets/img/cinema-s.jpg"
+        alt="No poster available">
+      </div>
+
+    </div>
+    <div class="row justify-content-center full">
+      <button class="buttonload posLoad" (click)=load();>
+        <i class="fa fa-spinner fa-spin"></i>Click to load more
+      </button>
+    </div>
+
+  </div>
+</div>
